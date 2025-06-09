@@ -163,7 +163,7 @@ dmlmed <- function(
     k <- 0
     for(predict_fold in cf_folds){
           k <- k + 1
-          cat(" Calculate Method 2: cross-fitting fold ", k, "\n")
+          cat(" Type 2 DML Estimator: cross-fitting fold ", k, "\n")
           train_k <- data[-predict_fold,]
           pred_k <- data[predict_fold,]
           # Fit Treatment Models:
@@ -398,7 +398,7 @@ dmlmed <- function(
     k <- 0
     for(predict_fold in cf_folds){
           k <- k + 1
-          cat(" Calculate Method 1: cross-fitting fold ", k, "\n")
+          cat(" Type 1 DML Estimator: cross-fitting fold ", k, "\n")
           train_k <- data[-predict_fold,]
           pred_k <- data[predict_fold,]
           # Fit Treatment Models:
