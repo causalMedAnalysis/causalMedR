@@ -1444,11 +1444,24 @@ mrmed_rst1 <- mrmed(
 ```
 
 
-## `dmlmed`: Debiased Machine Learning for Mediation Analysis
+## `dmlmed`: debiased machine learning for mediation analysis
 
 The `dmlmed` function estimates total, natural direct, and natural indirect effects using debiased machine learning (DML). It accommodates both univariate and multivariate mediators and allows flexible model specification using Super Learners.
 
-The method implements cross-fitting and bias correction techniques from Chernozhukov et al. (2018) to enable valid inference when machine learning models are used.
+Similar to `mrmed`, `dmlmed` also implements two different multiply robust estimators, depending on which nuisance models the user supplies:
+
+    Type 1 Estimator (Wodtke and Zhou, Equation 6.17): Requires:
+        A super learner for P(M|D,C)
+        A super learner for P(D|C)
+        A super learner for E(Y|C,D,M)
+
+    Type 2 Estimator (Wodtke and Zhou, Equation 6.20): Requires:
+        A super learner for P(D|C)
+        A super learner for P(D|C,M)
+        A super learner for E(Y|C,M,D)
+        A super learner for E(E(Y|C,D=d,M)|C,D)
+
+When multiple mediators are analyzed, only the Type 2 Estimator can be used, and the function estimates multivariate natural effects across the set of mediators.
 
 ### Function
 
