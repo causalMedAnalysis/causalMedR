@@ -86,30 +86,19 @@ medsim_core <- function(data, num_sim = 2000, cat_list = c("0", "1"), treatment,
 
   # Define the modify_formula function for intv_med
   modify_formula <- function(formula, mediators) {
-    # Expand the formula into its individual term labels
+    # get the character vector of individual terms
     expanded_terms <- attr(terms(formula), "term.labels")
 
-    # Process each term: if it includes any mediator, remove it.
-    processed_terms <- sapply(expanded_terms, function(term) {
-      # Split interaction terms into individual variables
-      variables <- unlist(strsplit(term, ":"))
-      # If any variable in the term is a mediator, drop the term.
-      if (any(variables %in% mediators)) {
-        return(NULL)
-      } else {
-        return(term)
-      }
-    })
+    # keep only those terms whose all.vars() does _not_ include any mediator name
+    keep <- vapply(expanded_terms, function(term) {
+      vars_in_term <- all.vars(as.formula(paste("~", term)))
+      !any(vars_in_term %in% mediators)
+    }, logical(1))
 
-    # Remove any dropped (NULL) terms and ensure uniqueness
-    processed_terms <- unique(processed_terms[!sapply(processed_terms, is.null)])
-
-    # Reconstruct the new formula with the original left-hand side.
+    # rebuild
     lhs <- as.character(formula)[2]
-    new_formula_str <- paste(lhs, "~", paste(processed_terms, collapse = " + "))
-    new_formula <- as.formula(new_formula_str)
-
-    return(new_formula)
+    new_rhs <- paste(expanded_terms[keep], collapse = " + ")
+    as.formula(paste(lhs, "~", new_rhs))
   }
 
   parse_intv_med <- function(intv_med) {
