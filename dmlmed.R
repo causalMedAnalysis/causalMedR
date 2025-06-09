@@ -589,9 +589,9 @@ dmlmed <- function(
         `ATE(1,0)_Mean` = mean(ATE),
         `NDE(1,0)_Mean` = mean(NDE),
         `NIE(1,0)_Mean` = mean(NIE),
-        `ATE(1,1)_SE` = sd(ATE) / sqrt(n()),
-        `NDE(1,1)_SE` = sd(NDE) / sqrt(n()),
-        `NIE(1,1)_SE` = sd(NIE) / sqrt(n())
+        `ATE(1,0)_SE` = sd(ATE) / sqrt(n()),
+        `NDE(1,0)_SE` = sd(NDE) / sqrt(n()),
+        `NIE(1,0)_SE` = sd(NIE) / sqrt(n())
       ) %>%
       pivot_longer(
         cols = everything(),

@@ -292,9 +292,9 @@ mrmed_inner <- function(
         NIE = S_d_d - S_dstar_d
       ) %>%
       summarise(
-        `ATE(0,1)` = wtd.mean(ATE),
-        `NDE(0,1)` = wtd.mean(NDE),
-        `NIE(0,1)` = wtd.mean(NIE)
+        `ATE(1,0)` = wtd.mean(ATE),
+        `NDE(1,0)` = wtd.mean(NDE),
+        `NIE(1,0)` = wtd.mean(NIE)
       )
     
     model2_rst <-
@@ -467,9 +467,9 @@ mrmed_inner <- function(
         NIE = S_d_d - S_dstar_d
       ) %>%
       summarise(
-        `ATE(0,1)` = wtd.mean(ATE),
-        `NDE(0,1)` = wtd.mean(NDE),
-        `NIE(0,1)` = wtd.mean(NIE)
+        `ATE(1,0)` = wtd.mean(ATE),
+        `NDE(1,0)` = wtd.mean(NDE),
+        `NIE(1,0)` = wtd.mean(NIE)
       )
     model1_rst <-
       list(
@@ -943,19 +943,19 @@ mrmed <- function(
       split(boot_res, boot_res$method_type),
       function(rst){
         list(
-        ci_ATE = boot_ci(rst$`ATE(0,1)`),
-        ci_NDE = boot_ci(rst$`NDE(0,1)`),
-        ci_NIE = boot_ci(rst$`NIE(0,1)`),
-        pvalue_ATE = boot_pval(rst$`ATE(0,1)`),
-        pvalue_NDE = boot_pval(rst$`NDE(0,1)`),
-        pvalue_NIE = boot_pval(rst$`NIE(0,1)`),
-        sd_ATE = sd(rst$`ATE(0,1)`, na.rm = TRUE),
-        sd_NDE = sd(rst$`NDE(0,1)`, na.rm = TRUE),
-        sd_NIE = sd(rst$`NIE(0,1)`, na.rm = TRUE),
+        ci_ATE = boot_ci(rst$`ATE(1,0)`),
+        ci_NDE = boot_ci(rst$`NDE(1,0)`),
+        ci_NIE = boot_ci(rst$`NIE(1,0)`),
+        pvalue_ATE = boot_pval(rst$`ATE(1,0)`),
+        pvalue_NDE = boot_pval(rst$`NDE(1,0)`),
+        pvalue_NIE = boot_pval(rst$`NIE(1,0)`),
+        sd_ATE = sd(rst$`ATE(1,0)`, na.rm = TRUE),
+        sd_NDE = sd(rst$`NDE(1,0)`, na.rm = TRUE),
+        sd_NIE = sd(rst$`NIE(1,0)`, na.rm = TRUE),
         method_type = unique(rst$method_type),
-        boot_ATE = rst$`ATE(0,1)`,
-        boot_NDE = rst$`NDE(0,1)`,
-        boot_NIE = rst$`NIE(0,1)`
+        boot_ATE = rst$`ATE(1,0)`,
+        boot_NDE = rst$`NDE(1,0)`,
+        boot_NIE = rst$`NIE(1,0)`
         )
       }
     )
