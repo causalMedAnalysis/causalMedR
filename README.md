@@ -1300,13 +1300,13 @@ res_wt_boot$summary_df
 
 The `mrmed()` function uses a multiply robust estimation procedure and computes inferential statistics via nonparametric bootstrap. It estimates causal effects using two different approaches, depending on which nuisance models the user supplies:
 
-* **Type 1 Estimator (Wodtke and Zhou, Equation 6.17)**: Requires:
+* **Type 1 Estimator (Wodtke and Zhou, Equation 6.17)** Requires:
 
   * A logit model for P(M|D,C)
   * A logit model for P(D|C)
   * A linear model for E(Y|C,D,M)
 
-* **Type 2 Estimator (Wodtke and Zhou, Equation 6.20)**: Requires:
+* **Type 2 Estimator (Wodtke and Zhou, Equation 6.20)** Requires:
 
   * A logit model for P(D|C)
   * A logit model for P(D|C,M)
@@ -1450,16 +1450,16 @@ The `dmlmed` function estimates total, natural direct, and natural indirect effe
 
 Similar to `mrmed`, `dmlmed` also implements two different multiply robust estimators, depending on which nuisance models the user supplies:
 
-    Type 1 Estimator (Wodtke and Zhou, Equation 6.17): Requires:
-        A super learner for P(M|D,C)
-        A super learner for P(D|C)
-        A super learner for E(Y|C,D,M)
+* **Type 1 Estimator (Wodtke and Zhou, Equation 6.17)** Requires:
+  * A super learner for P(M|D,C)
+  * A super learner for P(D|C)
+  * A super learner for E(Y|C,D,M)
 
-    Type 2 Estimator (Wodtke and Zhou, Equation 6.20): Requires:
-        A super learner for P(D|C)
-        A super learner for P(D|C,M)
-        A super learner for E(Y|C,M,D)
-        A super learner for E(E(Y|C,D=d,M)|C,D)
+* **Type 2 Estimator (Wodtke and Zhou, Equation 6.20)** Requires:
+  * A super learner for P(D|C)
+  * A super learner for P(D|C,M)
+  * A super learner for E(Y|C,M,D)
+  * A super learner for E(E(Y|C,D=d,M)|C,D)
 
 When multiple mediators are analyzed, only the Type 2 Estimator can be used, and the function estimates multivariate natural effects across the set of mediators.
 
