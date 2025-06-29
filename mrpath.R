@@ -449,7 +449,7 @@ mrpath <- function(
     interaction_DC = FALSE,
     interaction_MC = FALSE,
     boot = FALSE,
-    boot_reps = 2000,
+    boot_reps = 200,
     boot_conf_level = 0.95,
     boot_seed = NULL,
     boot_parallel = FALSE,
