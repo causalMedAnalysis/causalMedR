@@ -12,9 +12,9 @@ This repository contains R functions for conducting causal mediation analysis us
 - [ipwpath – analysis of path-specific effects using inverse probability weights](#ipwpath-analysis-of-path-specific-effects-using-inverse-probability-weights)
 - [pathimp – analysis of path-specific effects using regression imputation](#pathimp-analysis-of-path-specific-effects-using-regression-imputation)
 - [mrmed – mediation analysis using multiply robust estimation](#mrmed-mediation-analysis-using-multiply-robust-estimation)
+- [mrpath – multiply robust estimation of path-specific effects](#mrpath-multiply-robust-estimation-for-path-specific-effects)
 - [dmlmed – debiased machine learning for mediation analysis](#dmlmed-debiased-machine-learning-for-mediation-analysis)
 - [utils – utility functions](#utils-utility-functions)
-
 
 ## `linmed`: mediation analysis using linear models
 
@@ -1198,8 +1198,6 @@ pathimp(
 | `boot_cores`     | Number of CPU cores for parallel bootstrap. Defaults to available cores minus 2. |
 | `round_decimal`  | Digits to round estimates |
 
----
-
 ### Output
 
 Returns a named list containing:
@@ -1212,8 +1210,6 @@ Each row in `summary_df` includes:
 - The estimator type  
 - The causal estimand (ATE or PSE through each mediator)  
 - The point estimate and confidence interval
-
----
 
 ### Examples
 
@@ -1315,7 +1311,6 @@ The `mrmed()` function uses a multiply robust estimation procedure and computes 
 
 When multiple mediators are analyzed, only the **Type 2 Estimator** can be used, and the function estimates multivariate natural effects across the set of mediators.
 
-
 ### Function
 
 ```r
@@ -1365,7 +1360,6 @@ mrmed(
 | `boot_parallel`  | Parallel backend (`"no"`, `"multicore"`) |
 | `boot_cores`     | Number of CPU cores for parallel bootstrap. Defaults to available cores minus 2. |
 
-
 ### Returns
 
 The function returns a list containing:
@@ -1375,7 +1369,6 @@ The function returns a list containing:
 * `models_M`: Model for the mediator (if specified to implement Type 1 estimator).
 * `models_Y`: List of model objects for the outcome models.
 * Bootstrap results (if `boot = TRUE`):
-
 
 ### Examples
 
@@ -1440,6 +1433,168 @@ mrmed_rst1 <- mrmed(
   data = df,
   boot = TRUE, boot_reps = 2000
   boot_parallel = FALSE
+)
+```
+
+
+## `mrpath`: multiply robust estimation for path-specific effects
+
+The `mrpath` function estimates path-specific effects using a multiply robust (MR) approach. It recursively constructs natural direct effects (NDEs) using flexible models and supports bootstrap inference and parallelization.
+
+### Function
+
+```r
+mrpath(
+  D,
+  Y,
+  M,
+  C,
+  data,
+  d,
+  dstar,
+  censor = TRUE,
+  censor_low = 0.01,
+  censor_high = 0.99,
+  interaction_DM = FALSE,
+  interaction_DC = FALSE,
+  interaction_MC = FALSE,
+  boot = FALSE,
+  boot_reps = 2000,
+  boot_conf_level = 0.95,
+  boot_seed = NULL,
+  boot_parallel = FALSE,
+  boot_cores = max(c(parallel::detectCores() - 2, 1))
+)
+```
+
+### Arguments
+
+| Argument                    | Description                                                                                     |
+| --------------------------- | ----------------------------------------------------------------------------------------------- |
+| `data`                      | A data frame.                                                                                   |
+| `D`                         | Name of the binary exposure variable (character). Must be numeric with two values.              |
+| `Y`                         | Name of the numeric outcome variable (character).                                               |
+| `M`                         | List of vectors identifying mediators in hypothesized causal order.                             |
+| `C`                         | Optional character vector of baseline covariates.                                               |
+| `d`, `dstar`                | Numeric values representing treatment and control levels. Re-coded as 1 and 0 if not already.   |
+| `interaction_DM`            | Logical. If `TRUE`, include exposure-mediator interactions in the outcome model.                |
+| `interaction_DC`            | Logical. If `TRUE`, include exposure-covariate interactions in the outcome model.               |
+| `interaction_MC`            | Logical. If `TRUE`, include mediator-covariate interactions in the outcome model.               |
+| `censor`                    | Logical. If `TRUE`, applies censoring to the IPWs.                                              |
+| `censor_low`, `censor_high` | Numeric quantiles used to censors the IPWs (defaults: 0.01, 0.99).                              |
+| `boot`                      | Logical. If `TRUE`, uses nonparametric bootstrap for inference.                                 |
+| `boot_reps`                 | Number of bootstrap replications (default: 200).                                               |
+| `boot_conf_level`           | Confidence level for bootstrap interval (default: 0.95).                                        |
+| `boot_seed`                 | Integer seed for reproducibility.                                                               |
+| `boot_parallel`             | Logical. If `TRUE`, parallelizes the bootstrap (requires `doParallel`, `doRNG`, and `foreach`). |
+| `boot_cores`                | Number of CPU cores for parallel bootstrap. Defaults to available cores minus 2.                |
+
+### Specifying Mediators with `M`
+
+The `M` argument supports both univariate and multivariate mediators and allows for partial causal ordering.
+
+* **Two ordered mediators:**
+
+  ```r
+  M = list("m1", "m2")
+  ```
+
+* **Block of unordered mediators following m1:**
+
+  ```r
+  M = list("m1", c("m2", "m3"))
+  ```
+
+* **Including a dummy-encoded nominal mediator:**
+
+  ```r
+  M = list("m1", c("m2", "m3"), c("level2", "level3", "level4"))
+  ```
+
+Note: Order of items within each vector does not matter. Order of vectors in the list does matter.
+
+### Returns
+
+If `boot = FALSE`, `mrpath` returns:
+
+* `ATE`: Estimated average total effect.
+* `PSE`: Named list of path-specific effects (length = `length(M) + 1`).
+* `model_lst_D`: List of fitted exposure models.
+* `model_lst_Y`: List of sequential outcome models, with mediators added recursively.
+
+If `boot = TRUE`, additional outputs include:
+
+* `ATE`: Bootstrap estimates and confidence intervals for the ATE.
+* `PSE: D -> Mk ~> Y`: Bootstrap estimates for path-specific effect via mediator `Mk`.
+* `PSE: D -> Y`: Bootstrap estimates for the direct effect.
+
+Each bootstrap output contains:
+
+* `stats`: A `tibble` with the confidence interval, p-value, bootstrap SE, and method label.
+* `org_val`: A `tibble` with bootstrap replicate estimates and replicate IDs.
+
+### Examples
+
+#### Estimate PSEs with two ordered mediators
+
+```r
+data(nlsy)
+
+D <- "att22"
+Y <- "std_cesd_age40"
+M <- list("ever_unemp_age3539", "log_faminc_adj_age3539")
+C <- c("female", "black", "hispan", "paredu", "parprof", "parinc_prank", "famsize", "afqt3")
+
+key_vars <- c("cesd_age40", D, unlist(M), C)
+
+df <- nlsy[complete.cases(nlsy[, key_vars]), ] |>
+  dplyr::mutate(std_cesd_age40 = (cesd_age40 - mean(cesd_age40)) / sd(cesd_age40))
+
+result <- mrpath(
+  D = D,
+  Y = Y,
+  M = M,
+  C = C,
+  data = df,
+  d = 1,
+  dstar = 0
+)
+```
+
+#### Bootstrap
+
+```r
+result_boot <- mrpath(
+  D = D,
+  Y = Y,
+  M = M,
+  C = C,
+  data = df,
+  d = 1,
+  dstar = 0,
+  boot = TRUE,
+  boot_reps = 2000,
+  boot_conf_level = 0.95,
+  boot_seed = 1234
+)
+```
+
+#### Parallelized Bootstrap
+
+```r
+result_bootpar <- mrpath(
+  D = D,
+  Y = Y,
+  M = M,
+  C = C,
+  data = df,
+  d = 1,
+  dstar = 0,
+  boot = TRUE,
+  boot_reps = 2000,
+  boot_conf_level = 0.95,
+  boot_seed = 1234,
+  boot_parallel = TRUE
 )
 ```
 
