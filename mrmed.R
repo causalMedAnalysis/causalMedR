@@ -45,7 +45,7 @@ mrmed_inner <- function(
              paste(unique(data[[D]][!is.na(data[[D]])]), collapse = ", ")))
   }
   # 2. Make sure there is no missing values in the data:
-  key_vars <- c(D, M, Y, C)
+  key_vars <- c(D, unlist(M), Y, C)
   if (!minimal) {
     miss_summary <- sapply(
       key_vars,
