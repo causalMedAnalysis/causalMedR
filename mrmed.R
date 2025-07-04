@@ -821,21 +821,21 @@ mrmed <- function(
   # compute point estimates
   est <- 
     mrmed_inner(
-      D,
-      Y,
-      M,
-      D_C_model,
-      D_MC_model,
-      Y_DC_model,
-      Y_DMC_model,
-      M_DC_model,
+      D = D,
+      Y = Y,
+      M = M,
+      D_C_model = D_C_model,
+      D_MC_model = D_MC_model,
+      Y_DC_model = Y_DC_model,
+      Y_DMC_model = Y_DMC_model,
+      M_DC_model = M_DC_model,
       data = data_outer,
-      d,
-      dstar,
+      d = d,
+      dstar = dstar,
       minimal = FALSE,
-      censor,
-      censor_low,
-      censor_high
+      censor = censor,
+      censor_low = censor_low,
+      censor_high = censor_high
     )
   
   # bootstrap, if requested
@@ -847,21 +847,21 @@ mrmed <- function(
       
       # compute point estimates in the replicate sample
       mrmed_inner(
-        D,
-        Y,
-        M,
-        D_C_model,
-        D_MC_model,
-        Y_DC_model,
-        Y_DMC_model,
-        M_DC_model,
+        D = D,
+        Y = Y,
+        M = M,
+        D_C_model = D_C_model,
+        D_MC_model = D_MC_model,
+        Y_DC_model = Y_DC_model,
+        Y_DMC_model = Y_DMC_model,
+        M_DC_model = M_DC_model,
         data = boot_data,
-        d,
-        dstar,
+        d = d,
+        dstar = dstar,
         minimal = TRUE,
-        censor,
-        censor_low,
-        censor_high
+        censor = censor,
+        censor_low = censor_low,
+        censor_high = censor_high
       )
     }
 
