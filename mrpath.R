@@ -1,4 +1,4 @@
-#' Multiply robust (MR) estimator for path specific effects - inner function
+#' Multiply Robust (MR) Estimation for Path-specific Effects - inner function
 #' 
 #' @description
 #' Internal function used within `mrpath()`. See the `mrpath()` function 
@@ -38,14 +38,14 @@ mrpath_inner <- function(
   models_lst_D <- vector("list", length = K)
   
   # Step 2: Calculate the NDE and NIE for each k
-  for(k in rev(seq_len(K))){
+  for(k in rev(seq_len(K))) {
     # Step 2.1: Construct the estimation models based on corresponding mediators
     # D Models
     D_C_model <- as.formula(paste(D, " ~ ", paste(C, collapse= "+")))
-    if(interaction_MC == FALSE){
+    if(interaction_MC == FALSE) {
       D_MC_model <- as.formula(paste(D, " ~ ", paste(c(C, unlist(M[1:k])), collapse= "+")))
     }
-    else{
+    else {
       D_MC_model <- as.formula(
         paste(
           D, 
@@ -57,10 +57,10 @@ mrpath_inner <- function(
         )
     }
     # Y Models 
-    if(interaction_DC == FALSE){
+    if(interaction_DC == FALSE) {
       Y_DC_model <- as.formula(paste(Y, " ~ ", paste(c(C, D), collapse= "+")))
     }
-    else{
+    else {
       Y_DC_model <- as.formula(
         paste(
           Y, 
@@ -70,10 +70,10 @@ mrpath_inner <- function(
           paste(D, C, sep = ":", collapse = " + "))
         )
     }
-    if(!any(interaction_DC, interaction_DM, interaction_MC)){
+    if(!any(interaction_DC, interaction_DM, interaction_MC)) {
       Y_DMC_model <- as.formula(paste(Y, " ~ ", paste(c(C, D, unlist(M[1:k])), collapse= "+")))
     }
-    else{
+    else {
       Y_DMC_model <- paste(Y, " ~ ", paste(c(C, D, unlist(M[1:k])), collapse= "+"))
       if (interaction_DM) {
         Y_DMC_model <- paste(
@@ -104,6 +104,7 @@ mrpath_inner <- function(
         D = D,
         Y = Y,
         M = unlist(M[1:k]),
+        C = C,
         D_C_model = D_C_model, # D ~ C
         D_MC_model = D_MC_model, # D ~ M,C
         Y_DC_model = Y_DC_model, # Y ~ D,C
@@ -117,8 +118,9 @@ mrpath_inner <- function(
         censor_low = censor_low,
         censor_high = censor_high
        )
+    
     # Step 2.3: Calculate the PSEs based on the estimation results
-    if(K == 1){
+    if(K == 1) {
       PSE[[K]] <- est$est2$`NDE(1,0)`
       PSE[[K + 1]] <- est$est2$`NIE(1,0)` 
       ATE <- est$est2$`ATE(1,0)`
@@ -128,60 +130,60 @@ mrpath_inner <- function(
         models_lst_D[[K]] <- est$models_D
       }
     }
-    else if(k == 1 & K >= 2){
+    else if(k == 1 & K >= 2) {
       PSE[[K - k + 1]] <- est$est2$`NDE(1,0)` - prev_NDE
       PSE[[K + 1]] <- est$est2$`NIE(1,0)`
       ATE <- est$est2$`ATE(1,0)`
       names(PSE)[K + 1] <- "D->M1~>Y"
-      if(!minimal){
+      if(!minimal) {
         models_lst_Y[[k]] <- est$models_Y
         names(models_lst_Y)[k] <- paste0("M_", k)
         models_lst_D[[k]] <- est$models_D
         names(models_lst_D)[k] <- paste0("M_", k)
       }
-      if(k + 1 == K){
+      if(k + 1 == K) {
         names(PSE)[K - k + 1] <- paste0("D->M",k+1,"->Y")
       }
-      else{
+      else {
         names(PSE)[K - k + 1] <- paste0("D->M",k+1,"~>Y")
       }
     } 
-  else if(k == K & K >= 2){
+  else if(k == K & K >= 2) {
       PSE[[K - k + 1]] <- est$est2$`NDE(1,0)`
       names(PSE)[K - k + 1] <- "D->Y"
       prev_NDE <- est$est2$`NDE(1,0)`
-      if(!minimal){
+      if(!minimal) {
         models_lst_Y[[k]] <- est$models_Y
         names(models_lst_Y)[k] <- paste0("M_", k)
         models_lst_D[[k]] <- est$models_D
         names(models_lst_D)[k] <- paste0("M_", k)
       }
     }
-  else{
+  else {
       PSE[[K - k + 1]] <- est$est2$`NDE(1,0)` - prev_NDE
-      if(!minimal){
+      if(!minimal) {
         models_lst_Y[[k]] <- est$models_Y
         names(models_lst_Y)[k] <- paste0("M_", k)
         models_lst_D[[k]] <- est$models_D
         names(models_lst_D)[k] <- paste0("M_", k)
       }
       prev_NDE <- est$est2$`NDE(1,0)`
-      if(k + 1 == K){
+      if(k + 1 == K) {
       names(PSE)[[K - k + 1]] <- paste0("D->M",k+1,"->Y")
       }
-      else{
+      else {
       names(PSE)[[K - k + 1]] <- paste0("D->M",k+1,"~>Y")
       }
     }
   }
   
-  if(minimal){
+  if(minimal) {
     out <- 
       list(
         ATE = ATE,
         PSE = PSE
       )
-  }else{
+  } else {
     out <-
       list(
         ATE = ATE,
@@ -193,7 +195,7 @@ mrpath_inner <- function(
   return(out)
 }
 
-#' Multiply robust (MR) estimation for path specific effects
+#' Multiply Robust (MR) Estimation for Path-specific Effects
 #' 
 #' @description
 #' `mrpath()` uses a multiply robust (MR) approach to estimate path-specific effects,
@@ -390,7 +392,7 @@ mrpath_inner <- function(
 #' "log_faminc_adj_age3539"
 #' )
 
-#' # baseline confounders: 
+#' # baseline confounders 
 #' C <- c(
 #' "female",
 #' "black",
@@ -495,11 +497,12 @@ mrpath <- function(
       censor_low = censor_low,
       censor_high = censor_high
     )
+  
   # bootstrap, if requested
   if (boot) {
     boot_fnc <- function() {
 
-      boot_data <- data_outer %>% sample_frac(replace = TRUE)
+      boot_data <- data_outer %>% dplyr::sample_frac(replace = TRUE)
       
       mrpath_inner(
         D = D,
