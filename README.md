@@ -1762,22 +1762,16 @@ To estimate path-specific effects with K causally ordered mediators, `dmlpath` r
 
 * **Direct effect (bypassing all mediators):**
 
-  $$
-  \text{PSE}_{D \to Y}(d, d^*) = \text{NDE}_{M}(d, d^*)
-  $$
-
+  `PSE_{D → Y}(d, d*) = NDE_{M}(d, d*)`
+  
 * **Path-specific effect through each $M_k$:**
 
-  $$
-  \text{PSE}_{D \to M_k \rightsquigarrow Y}(d, d^*) = \text{NDE}_{M_{k-1}}(d, d^*) - \text{NDE}_{M_k}(d, d^*)
-  $$
-
+  `PSE_{D → M_k ⇝ Y}(d, d*) = NDE_{M_{k−1}}(d, d*) − NDE_{M_k}(d, d*)`
+  
 * **For the first mediator:**
 
-  $$
-  \text{PSE}_{D \to M_1 \rightsquigarrow Y}(d, d^*) = \text{NIE}_{M_1}(d, d^*)
-  $$
-
+  `PSE_{D → M_1 ⇝ Y}(d, d*) = NIE_{M_1}(d, d*)`
+  
 ### Function
 
 ```r
