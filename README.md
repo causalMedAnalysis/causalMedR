@@ -14,7 +14,9 @@ This repository contains R functions for conducting causal mediation analysis us
 - [mrmed – mediation analysis using multiply robust estimation](#mrmed-mediation-analysis-using-multiply-robust-estimation)
 - [mrpath – multiply robust estimation of path-specific effects](#mrpath-multiply-robust-estimation-for-path-specific-effects)
 - [dmlmed – debiased machine learning for mediation analysis](#dmlmed-debiased-machine-learning-for-mediation-analysis)
+- [dmlpath – debiased machine learning for path-specific effects](#dmlmed-debiased-machine-learning-for-path-specific-effects)
 - [utils – utility functions](#utils-utility-functions)
+
 
 ## `linmed`: mediation analysis using linear models
 
@@ -1747,6 +1749,153 @@ Ensure the following packages are installed:
 
 ```r
 install.packages(c("SuperLearner", "glmnet", "ranger", "dplyr", "tibble"))
+```
+
+
+## `dmlpath`: debiased machine learning for path-specific effects
+
+The `dmlpath` function estimates **path-specific effects** (PSEs) using debiased machine learning (DML). When there are multiple **causally ordered mediators**, the function decomposes the total effect into a direct effect and a series of PSEs, each corresponding to a specific mediator. If only one mediator is specified, `dmlpath` returns conventional natural direct and indirect effects.
+
+All estimates are based on the **Type 2 Estimator** described in Wodtke and Zhou (Forthcoming), implemented via repeated calls to the `dmlmed()` function.
+
+To estimate path-specific effects with K causally ordered mediators, `dmlpath` recursively estimates a sequence of natural direct effects (NDEs), then computes differences to isolate each path:
+
+* **Direct effect (bypassing all mediators):**
+
+  $$
+  \text{PSE}_{D \to Y}(d, d^*) = \text{NDE}_{M}(d, d^*)
+  $$
+
+* **Path-specific effect through each $M_k$:**
+
+  $$
+  \text{PSE}_{D \to M_k \rightsquigarrow Y}(d, d^*) = \text{NDE}_{M_{k-1}}(d, d^*) - \text{NDE}_{M_k}(d, d^*)
+  $$
+
+* **For the first mediator:**
+
+  $$
+  \text{PSE}_{D \to M_1 \rightsquigarrow Y}(d, d^*) = \text{NIE}_{M_1}(d, d^*)
+  $$
+
+### Function
+
+```r
+dmlpath(
+  D,
+  Y,
+  M,
+  C,
+  data,
+  d,
+  dstar,
+  censor = TRUE,
+  censor_low = 0.01,
+  censor_high = 0.99,
+  interaction_DM = FALSE,
+  interaction_DC = FALSE,
+  interaction_MC = FALSE,
+  num_folds = 5,
+  V = 5L,
+  seed,
+  SL.library = c("SL.mean", "SL.glmnet"),
+  stratifyCV = TRUE
+)
+```
+
+### Arguments
+
+| Argument                    | Description                                                                                |
+| --------------------------- | -------------------------------------------------------------------------------------------|
+| `D`                         | Name of the binary exposure variable (must be numeric with two unique values).             |
+| `Y`                         | Name of the outcome variable (must be numeric).                                            |
+| `M`                         | List of mediators. Each list element is a character vector of variable names.              |
+| `C`                         | Character vector of covariate names to include in all models.                              |
+| `data`                      | A data frame containing all variables.                                                     |
+| `d`, `dstar`                | Numeric values specifying the treatment and control levels.                                |
+| `interaction_DM`            | Whether to include exposure × mediator interactions in the outcome model.                  |
+| `interaction_DC`            | Whether to include exposure × covariate interactions in both mediator and outcome models.  |
+| `interaction_MC`            | Whether to include mediator × covariate interactions in the outcome model.                 |
+| `censor`                    | Whether to censor the inverse probability weights.                                         |
+| `censor_low`, `censor_high` | Quantile thresholds for censoring IPW weights (defaults: 0.01, 0.99).                      |
+| `num_folds`                 | Number of folds for cross-fitting (default: 5).                                            |
+| `V`                         | Number of Super Learner CV folds (default: 5L).                                            |
+| `seed`                      | Random seed for reproducibility.                                                           |
+| `SL.library`                | Learners to be used in the Super Learner ensemble.                                         |
+| `stratifyCV`                | Whether to use stratified CV folds for treatment models.                                   |
+
+### Returns
+
+Returns a tibble with the following columns:
+
+* `Estimand`: Description of each effect (e.g., ATE, natural direct, and path-specific effects).
+* `Mean`: Point estimate.
+* `SE`: Standard error.
+* `out`: Estimate with 95% CI in the format `"estimate [lower, upper]"`.
+
+### Specification of the `M` argument
+
+The `M` argument is a **list of character vectors**, allowing flexible specification of both causal ordering and multivariate mediators:
+
+```r
+# Two causally ordered single mediators
+M = list("m1", "m2")
+
+# One single mediator followed by two unordered mediators
+M = list("m1", c("m2a", "m2b"))
+```
+
+If one mediator is a categorical variable, dummy code its levels and treat the dummy variables as a multivariate block:
+
+```r
+M = list("m1", c("m2a", "m2b"), c("m3cat2", "m3cat3", "m3cat4"))
+```
+
+### Examples
+
+```r
+data(nlsy)
+
+Y <- "std_cesd_age40"
+D <- "att22"
+M <- list("ever_unemp_age3539", "log_faminc_adj_age3539")
+C <- c("female", "black", "hispan", "paredu", "parprof", "parinc_prank", "famsize", "afqt3")
+
+key_vars <- c("cesd_age40", D, unlist(M), C)
+
+df <- nlsy[complete.cases(nlsy[, key_vars]), ] |>
+  dplyr::mutate(std_cesd_age40 = (cesd_age40 - mean(cesd_age40)) / sd(cesd_age40))
+
+results <- dmlpath(
+  D = D,
+  Y = Y,
+  M = M,
+  C = C,
+  data = df,
+  d = 1,
+  dstar = 0,
+  censor = TRUE,
+  censor_low = 0.01,
+  censor_high = 0.99,
+  interaction_DM = FALSE,
+  interaction_DC = FALSE,
+  interaction_MC = FALSE,
+  num_folds = 5,
+  V = 5L,
+  seed = 02138,
+  SL.library = c("SL.mean", "SL.glmnet", "SL.ranger"),
+  stratifyCV = TRUE
+)
+
+print(results)
+```
+
+### Dependencies
+
+Ensure the following packages are installed:
+
+```r
+install.packages(c("SuperLearner", "caret", "tidyr", "purrr", "dplyr", "tibble"))
 ```
 
 
