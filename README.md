@@ -1318,6 +1318,7 @@ mrmed(
     D,
     Y,
     M,
+    C,
     D_C_model,
     D_MC_model = NULL,
     Y_DC_model = NULL,
@@ -1346,6 +1347,7 @@ mrmed(
 | `D`              | A character string for the exposure variable (binary, numeric) |
 | `Y`              | A character string for the outcome variable (numeric) |
 | `M`              | A character vector (or list) of mediator variables (all numeric) |
+| `C`              | Optional character vector of baseline covariates. |
 | `D_C_model`       | Formula for logit model of P(D\C) (required) |
 | `D_MC_model`        | Formula for logit model of P(D\C,M) (required for type 2 estimator) |
 | `Y_DMC_model`        | Formula for linear model of E(Y\C,M,D) (required) |
@@ -1426,6 +1428,7 @@ mrmed_rst1 <- mrmed(
   D=D,
   Y=Y,
   M=M[[1]],
+  C=C,
   D_C_model=D_C_model,
   D_MC_model=D_MC_model,
   Y_DC_model=Y_DC_model,
@@ -1616,7 +1619,7 @@ Similar to `mrmed`, `dmlmed` also implements two different multiply robust estim
   * A super learner for E(Y|C,M,D)
   * A super learner for E(E(Y|C,D=d,M)|C,D)
 
-When multiple mediators are analyzed, only the Type 2 Estimator can be used, and the function estimates multivariate natural effects across the set of mediators.
+When multiple mediators are analyzed, only the Type 2 Estimator can be used, and the function estimates multivariate natural effects across the set of mediators considered as a whole.
 
 ### Function
 
@@ -1625,6 +1628,7 @@ dmlmed(
   D,
   Y,
   M,
+  C,
   D_C_model,
   D_MC_model = NULL,
   Y_DC_model = NULL,
@@ -1638,7 +1642,7 @@ dmlmed(
   seed,
   SL.library = c("SL.mean", "SL.glmnet"),
   stratifyCV = TRUE,
-  minimal = FALSE,
+  minimal = TRUE,
   censor = TRUE,
   censor_low = 0.01,
   censor_high = 0.99
@@ -1652,6 +1656,7 @@ dmlmed(
 | `D`                         | Name of the binary exposure variable (must be numeric with two unique values).               |
 | `Y`                         | Name of the outcome variable (must be numeric).                                              |
 | `M`                         | Name(s) of mediator variable(s). For multiple mediators, supply as a list of names.          |
+| `C`                         | Optional character vector of baseline covariates.                                            |
 | `D_C_model`                 | Formula for the exposure model: exposure \~ covariates. Required for both Type 1 and Type 2. |
 | `D_MC_model`                | (Optional) Formula for exposure \~ mediator(s) + covariates. Required for Type 2.            |
 | `Y_DMC_model`               | Formula for outcome \~ exposure + mediator(s) + covariates. Required for both types.         |
@@ -1681,6 +1686,11 @@ Each includes estimates for:
 * `NDE`: Natural direct effect
 * `NIE`: Natural indirect effect
 
+If `minimal` is set to `FALSE`, the function will return the following additional items:
+
+* a summary of missingness for the input data
+* data frames containing the estimated \eqn{S_{d(\ast), d(\ast)}} objects
+
 ### Estimation Types
 
 * **Type 1 Estimator**: Requires `D_C_model`, `Y_DMC_model`, and `M_DC_model`
@@ -1695,6 +1705,7 @@ dmlmed(
   D = "att22",
   Y = "std_cesd_age40",
   M = "ever_unemp_age3539",
+  C = c("female", "black", "hispan", "paredu", "parprof", "parinc_prank", "famsize", "afqt3"),
   D_C_model = "att22 ~ female + black + hispan + paredu + parprof + parinc_prank + famsize + afqt3",
   Y_DMC_model = "std_cesd_age40 ~ female + black + hispan + paredu + parprof + parinc_prank + famsize + afqt3 + att22 + ever_unemp_age3539",
   M_DC_model = "ever_unemp_age3539 ~ female + black + hispan + paredu + parprof + parinc_prank + famsize + afqt3 + att22",
@@ -1715,6 +1726,7 @@ dmlmed(
   D = "att22",
   Y = "std_cesd_age40",
   M = "ever_unemp_age3539",
+  C = c("female", "black", "hispan", "paredu", "parprof", "parinc_prank", "famsize", "afqt3"),
   D_C_model = "att22 ~ female + black + hispan + paredu + parprof + parinc_prank + famsize + afqt3",
   D_MC_model = "att22 ~ female + black + hispan + paredu + parprof + parinc_prank + famsize + afqt3 + ever_unemp_age3539",
   Y_DMC_model = "std_cesd_age40 ~ female + black + hispan + paredu + parprof + parinc_prank + famsize + afqt3 + att22 + ever_unemp_age3539",
