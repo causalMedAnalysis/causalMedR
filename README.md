@@ -1689,7 +1689,7 @@ Each includes estimates for:
 If `minimal` is set to `FALSE`, the function will return the following additional items:
 
 * a summary of missingness for the input data
-* data frames containing the estimated \eqn{S_{d(\ast), d(\ast)}} objects
+* data frames containing the summands for the Type 1 and/or Type 2 Estimators
 
 ### Estimation Types
 
