@@ -14,7 +14,7 @@ This repository contains R functions for conducting causal mediation analysis us
 - [mrmed – mediation analysis using multiply robust estimation](#mrmed-mediation-analysis-using-multiply-robust-estimation)
 - [mrpath – multiply robust estimation of path-specific effects](#mrpath-multiply-robust-estimation-for-path-specific-effects)
 - [dmlmed – debiased machine learning for mediation analysis](#dmlmed-debiased-machine-learning-for-mediation-analysis)
-- [dmlpath – debiased machine learning for path-specific effects](#dmlmed-debiased-machine-learning-for-path-specific-effects)
+- [dmlpath – debiased machine learning for path-specific effects](#dmlpath-debiased-machine-learning-for-path-specific-effects)
 - [utils – utility functions](#utils-utility-functions)
 
 
